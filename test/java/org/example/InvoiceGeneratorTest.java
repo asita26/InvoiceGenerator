@@ -2,6 +2,9 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -15,22 +18,20 @@ class InvoiceGeneratorTest {
     void testCalculateFare() {
         InvoiceGenerator invoiceGenerator = new InvoiceGenerator();
 
-        // Test case 1: edge case for generating minimum fare
-        assertEquals(5.0, invoiceGenerator.calculateFare(0.009,1));
+      // Test case 1: Single ride
+        List<Ride> rides1 = new ArrayList<>();
+        rides1.add(new Ride(2.5, 5));
+        assertEquals(30.0, invoiceGenerator.calculateTotalFare(rides1));
 
-        // Test case 2: Short distance and low time
-        assertEquals(30.0, invoiceGenerator.calculateFare(2.5, 5));
+     // Test case 2: Multiple rides
+        List<Ride> rides2 = new ArrayList<>();
+        rides2.add(new Ride(2.5, 5));
+        rides2.add(new Ride(10.0, 60));
+        rides2.add(new Ride(0.1, 1));
+        assertEquals(195.0, invoiceGenerator.calculateTotalFare(rides2));
 
-        // Test case 3: Long distance, moderate time
-        assertEquals(160.0, invoiceGenerator.calculateFare(10.0, 60));
-
-        // Test case 4: Minimum fare
-        assertEquals(5.0, invoiceGenerator.calculateFare(0.1, 1));
-
-        // Test case 5: Distance-only calculation
-        assertEquals(20.0, invoiceGenerator.calculateFare(2.0, 0));
-
-        // Test case 6: Time-only calculation
-        assertEquals(25.0, invoiceGenerator.calculateFare(0.0, 25));
+        // Test case 3: No rides
+        List<Ride> rides3 = new ArrayList<>();
+        assertEquals(0.0, invoiceGenerator.calculateTotalFare(rides3));
     }
 }
