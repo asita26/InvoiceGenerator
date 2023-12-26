@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Ride.java
-class Ride {
+public class Ride {
     private double distance;
     private int time;
 
