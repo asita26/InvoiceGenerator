@@ -1,44 +1,55 @@
 package org.example;
-import java.util.Scanner;
+
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.List;
+
 public class CabService {
-        public static void main(String[] args) {
-            Scanner scanner = new Scanner(System.in);
-            InvoiceGenerator invoiceGenerator = new InvoiceGenerator();
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        InvoiceGenerator invoiceGenerator = new InvoiceGenerator();
 
-            List<Ride> rides = new ArrayList<>();
+        // Assume you have a user ID for whom you want to calculate the invoice
+        System.out.print("Enter user ID: ");
+        String userId = scanner.nextLine().trim();
 
-            // Take input for each ride from the user
-            while (true) {
-                System.out.print("Enter distance for the ride (in kilometers, or type 'exit' to finish): ");
-                String distanceInput = scanner.nextLine().trim();
+        // Fetch rides for the given user ID from the database
+        List<Ride> rides = getRidesByUserId(userId);
 
-                if (distanceInput.equalsIgnoreCase("exit")) {
-                    break;
-                }
+        // Calculate and print the invoice details for the given user
+        Invoice invoice = invoiceGenerator.calculateInvoice(rides);
 
-                System.out.print("Enter time for the ride (in minutes): ");
-                String timeInput = scanner.nextLine().trim();
+        System.out.println("Invoice Details:");
+        System.out.println("Total Number of Rides: " + invoice.getTotalRides());
+        System.out.println("Total Fare for all rides: Rs. " + invoice.getTotalFare());
+        System.out.println("Average Fare per Ride: Rs. " + invoice.getAverageFare());
+    }
 
-                try {
-                    double distance = Double.parseDouble(distanceInput);
-                    int time = Integer.parseInt(timeInput);
-                    Ride ride = new Ride(distance, time);
+    private static List<Ride> getRidesByUserId(String userId) {
+        List<Ride> rides = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     "SELECT distance, duration FROM rides r " +
+                             "JOIN user_rides ur ON r.ride_id = ur.ride_id " +
+                             "WHERE ur.user_id = ?")) {
+
+            preparedStatement.setString(1, userId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    double distance = resultSet.getDouble("distance");
+                    int duration = resultSet.getInt("duration");
+                    Ride ride = new Ride(distance, duration);
                     rides.add(ride);
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid input. Please enter valid numbers.");
                 }
             }
-
-            // Calculate and print the invoice details for all rides
-            Invoice invoice = invoiceGenerator.calculateInvoice(rides);
-
-            System.out.println("Invoice Details:");
-            System.out.println("Total Number of Rides: " + invoice.getTotalRides());
-            System.out.println("Total Fare for all rides: Rs. " + invoice.getTotalFare());
-            System.out.println("Average Fare per Ride: Rs. " + invoice.getAverageFare());
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return rides;
     }
+}
+
 
 
